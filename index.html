@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Patio de Don Simón - Tomar Pedido</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 0;
+            margin: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            margin-bottom: 8px;
+        }
+
+        .tasa-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tasa-dolar {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .btn-editar-tasa {
+            background: white;
+            color: #e74c3c;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .cliente-form {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .cliente-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .cliente-form input:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            background: none;
+            border: none;
+            font-size: 1em;
+        }
+
+        .tab.active {
+            color: #e74c3c;
+            border-bottom: 3px solid #e74c3c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .categoria {
+            margin-bottom: 24px;
+        }
+
+        .categoria h2 {
+            background: #f0f0f0;
+            color: #333;
+            padding: 12px 16px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-left: 4px solid #e74c3c;
+            margin-bottom: 12px;
+        }
+
+        .productos-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .producto-card {
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .producto-card.selected {
+            background: #fff5f5;
+        }
+
+        .producto-info {
+            flex: 2;
+        }
+
+        .producto-nombre {
+            font-size: 1em;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .producto-precio {
+            color: #e74c3c;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .producto-precio-bs {
+            color: #888;
+            font-size: 0.7em;
+        }
+
+        .cantidad-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8f8f8;
+            border-radius: 25px;
+            padding: 4px 8px;
+        }
+
+        .cantidad-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cantidad {
+            font-size: 1.1em;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+            color: #333;
+        }
+
+        .resumen {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            padding: 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 99;
+        }
+
+        .resumen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .resumen-header h3 {
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .total-pedido {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .resumen-items {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            font-size: 0.85em;
+        }
+
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .btn-enviar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-producto {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-producto-info {
+            flex: 2;
+        }
+
+        .modal-producto-nombre {
+            font-weight: 500;
+        }
+
+        .modal-producto-precio {
+            font-size: 0.8em;
+            color: #e74c3c;
+        }
+
+        .modal-cantidad-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-cantidad-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+
+        .modal-cantidad {
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-guardar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            flex: 1;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-cancelar {
+            background: #999;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .spacer {
+            height: 200px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: none;
+            z-index: 1000;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        .pedido-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #ffc107;
+        }
+
+        .pedido-card.completado {
+            border-left-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍲 Patio de Don Simón</h1>
+        <div class="tasa-container">
+            <span class="tasa-dolar" id="tasaDolar">💵 Bs 0,00 / $</span>
+            <button class="btn-editar-tasa" onclick="abrirModalTasa()">✏️ Editar</button>
+        </div>
+    </div>
+
+    <div class="cliente-form">
+        <input type="text" id="clienteNombre" placeholder="Nombre del cliente" autocomplete="off">
+        <input type="text" id="clienteMesa" placeholder="N° de mesa (opcional)" autocomplete="off">
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="cambiarTab('productos')">📦 Tomar Pedido</button>
+        <button class="tab" onclick="cambiarTab('historial')">📋 Historial</button>
+    </div>
+
+    <div id="tab-productos" class="tab-content active">
+        <div class="content" id="app-productos">
+            <div style="text-align: center; padding: 40px;">Cargando...</div>
+        </div>
+        <div class="spacer"></div>
+    </div>
+
+    <div id="tab-historial" class="tab-content">
+        <div class="content" id="app-historial" style="padding: 16px;">
+            <div style="text-align: center; padding: 40px;">Cargando pedidos...</div>
+        </div>
+        <div class="spacer"></div>
+    </div>
+
+    <div class="resumen" id="resumenPanel">
+        <div class="resumen-header">
+            <h3>📋 Pedido</h3>
+            <span class="total-pedido" id="totalPedido">$0.00</span>
+        </div>
+        <div class="resumen-items" id="resumenItems">
+            <div style="color: #999; text-align: center;">No hay productos</div>
+        </div>
+        <button class="btn-enviar" id="btnEnviar">✅ TOMAR PEDIDO</button>
+    </div>
+
+    <div id="modalTasa" class="modal">
+        <div class="modal-content" style="max-width: 300px;">
+            <h3>💰 Editar tasa</h3>
+            <input type="number" id="inputTasa" step="0.01" placeholder="Tasa en bolívares" style="width:100%; padding:10px; margin:10px 0;">
+            <div style="display:flex; gap:10px;">
+                <button onclick="guardarTasa()" style="flex:1; background:#27ae60; color:white; padding:10px; border:none; border-radius:8px;">Guardar</button>
+                <button onclick="cerrarModalTasa()" style="flex:1; background:#999; color:white; padding:10px; border:none; border-radius:8px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditarPedido" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Editar Pedido</h3>
+            <input type="text" id="editClienteNombre" placeholder="Nombre del cliente" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+            <input type="text" id="editMesa" placeholder="N° de mesa" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+            <div id="editProductosLista" style="max-height: 400px; overflow-y: auto;"></div>
+            <div class="modal-actions">
+                <button class="btn-guardar" onclick="guardarEdicionPedido()">💾 Guardar Cambios</button>
+                <button class="btn-cancelar" onclick="cerrarModalEditarPedido()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ Operación exitosa</div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script><script>
+    // ============ FIREBASE ============
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCT_B6OyMl1K946adqW8VQunkfG6NA35s",
+        authDomain: "patio-don-simon.firebaseapp.com",
+        projectId: "patio-don-simon",
+        storageBucket: "patio-don-simon.firebasestorage.app",
+        messagingSenderId: "577457818649",
+        appId: "1:577457818649:web:6b476e57e72774c00dee88",
+        measurementId: "G-W64HY6D9D8"
+    };
+
+    let db;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        console.log('✅ Firebase conectado');
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+
+    // ============ VARIABLES ============
+    let productos = [];
+    let carrito = {};
+    let tasaDolar = 40;
+    let clienteNombre = '';
+    let clienteMesa = '';
+    let todosLosPedidos = [];
+    let pedidoEditandoId = null;
+    let carritoEditando = {};
+
+    // ============ TASA ============
+    function cargarTasaGuardada() {
+        const guardada = localStorage.getItem('tasaDolar');
+        if (guardada) {
+            tasaDolar = parseFloat(guardada);
+            document.getElementById('tasaDolar').innerHTML = `💵 Bs ${tasaDolar.toFixed(2)} / $`;
+        }
+    }
+
+    function guardarTasa() {
+        const nuevaTasa = parseFloat(document.getElementById('inputTasa').value);
+        if (!isNaN(nuevaTasa) && nuevaTasa > 0) {
+            tasaDolar = nuevaTasa;
+            localStorage.setItem('tasaDolar', tasaDolar);
+            document.getElementById('tasaDolar').innerHTML = `💵 Bs ${tasaDolar.toFixed(2)} / $`;
+            cerrarModalTasa();
+            renderizarProductos();
+            actualizarResumen();
+        } else {
+            alert('Ingresa una tasa válida');
+        }
+    }
+
+    function abrirModalTasa() {
+        document.getElementById('inputTasa').value = tasaDolar;
+        document.getElementById('modalTasa').style.display = 'flex';
+    }
+
+    function cerrarModalTasa() {
+        document.getElementById('modalTasa').style.display = 'none';
+    }
+
+    // ============ PRODUCTOS ============
+    const productosDefault = [
+        { id: 'sopa_res', nombre: 'Sopa de Res', precio: 5.00, categoria: 'Sopas' },
+        { id: 'sopa_mondongo', nombre: 'Mondongo', precio: 5.00, categoria: 'Sopas' },
+        { id: 'sopa_picadillo', nombre: 'Picadillo', precio: 5.50, categoria: 'Sopas' },
+        { id: 'sopa_gallina', nombre: 'Gallina', precio: 5.00, categoria: 'Sopas' },
+        { id: 'sopa_res_media', nombre: '1/2 Res', precio: 3.00, categoria: '1/2 Sopas' },
+        { id: 'sopa_mondongo_media', nombre: '1/2 Mondongo', precio: 3.00, categoria: '1/2 Sopas' },
+        { id: 'sopa_picadillo_media', nombre: '1/2 Picadillo', precio: 2.00, categoria: '1/2 Sopas' },
+        { id: 'sopa_gallina_media', nombre: '1/2 Gallina', precio: 3.00, categoria: '1/2 Sopas' },
+        { id: 'cachapa_llanero', nombre: 'Cachapa con Queso Llanero', precio: 3.50, categoria: 'Cachapas' },
+        { id: 'cachapa_mano', nombre: 'Cachapa con Queso de Mano', precio: 5.50, categoria: 'Cachapas' },
+        { id: 'cachapa_mano_cochino', nombre: 'Cachapa con Queso de Mano y Cochino', precio: 8.00, categoria: 'Cachapas' },
+        { id: 'pescado', nombre: 'Pescado', precio: 6.00, categoria: 'Pescado' },
+        { id: 'cerveza', nombre: 'Cerveza', precio: 0.90, categoria: 'Bebidas' },
+        { id: 'papelon_limon', nombre: 'Papelón con Limón', precio: 1.50, categoria: 'Bebidas' },
+        { id: 'jamaica', nombre: 'Agua de Jamaica', precio: 1.50, categoria: 'Bebidas' }
+    ];
+
+    async function cargarProductos() {
+        if (!db) {
+            productos = [...productosDefault];
+            renderizarProductos();
+            return;
+        }
+        try {
+            const snapshot = await db.collection('productos').get();
+            if (snapshot.empty) {
+                productos = [...productosDefault];
+                for (let p of productos) {
+                    await db.collection('productos').doc(p.id).set(p);
+                }
+            } else {
+                productos = snapshot.docs.map(doc => doc.data());
+            }
+            renderizarProductos();
+        } catch (error) {
+            productos = [...productosDefault];
+            renderizarProductos();
+        }
+    }
+
+    function renderizarProductos() {
+        const categorias = ['Sopas', '1/2 Sopas', 'Cachapas', 'Pescado', 'Bebidas'];
+        const app = document.getElementById('app-productos');
+        app.innerHTML = '';
+
+        categorias.forEach(cat => {
+            const catProductos = productos.filter(p => p.categoria === cat);
+            if (catProductos.length === 0) return;
+            
+            const catDiv = document.createElement('div');
+            catDiv.className = 'categoria';
+            catDiv.innerHTML = `<h2>${cat}</h2><div class="productos-grid" id="grid-${cat.replace(/ /g, '_')}"></div>`;
+            app.appendChild(catDiv);
+            
+            const grid = catDiv.querySelector('.productos-grid');
+            catProductos.forEach(prod => {
+                const cantidad = carrito[prod.id] || 0;
+                const card = document.createElement('div');
+                card.className = `producto-card ${cantidad > 0 ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="producto-info">
+                        <div class="producto-nombre">${prod.nombre}</div>
+                        <div class="producto-precio">$${prod.precio.toFixed(2)}</div>
+                        <div class="producto-precio-bs">Bs ${(prod.precio * tasaDolar).toFixed(2)}</div>
+                    </div>
+                    <div class="cantidad-control">
+                        <button class="cantidad-btn menos" data-id="${prod.id}">-</button>
+                        <span class="cantidad" id="cant-${prod.id}">${cantidad}</span>
+                        <button class="cantidad-btn mas" data-id="${prod.id}">+</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        });
+
+        document.querySelectorAll('.cantidad-btn.menos').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                modificarCantidad(id, -1);
+            });
+        });
+        
+        document.querySelectorAll('.cantidad-btn.mas').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                modificarCantidad(id, 1);
+            });
+        });
+    }
+
+    function modificarCantidad(id, delta) {
+        const nuevoValor = (carrito[id] || 0) + delta;
+        if (nuevoValor <= 0) {
+            delete carrito[id];
+        } else {
+            carrito[id] = nuevoValor;
+        }
+        
+        const cantSpan = document.getElementById(`cant-${id}`);
+        if (cantSpan) cantSpan.textContent = carrito[id] || 0;
+        
+        const card = cantSpan?.closest('.producto-card');
+        if (card) {
+            if (carrito[id] > 0) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        }
+        
+        actualizarResumen();
+    }
+
+    function actualizarResumen() {
+        const resumenItems = document.getElementById('resumenItems');
+        let total = 0;
+        resumenItems.innerHTML = '';
+        
+        for (let [id, cantidad] of Object.entries(carrito)) {
+            const producto = productos.find(p => p.id === id);
+            if (producto && cantidad > 0) {
+                const subtotal = producto.precio * cantidad;
+                total += subtotal;
+                resumenItems.innerHTML += `
+                    <div class="resumen-item">
+                        <span>${producto.nombre} x${cantidad}</span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+        }
+        
+        if (Object.keys(carrito).length === 0) {
+            resumenItems.innerHTML = '<div style="color: #999; text-align: center;">No hay productos</div>';
+        }
+        
+        document.getElementById('totalPedido').innerHTML = `$${total.toFixed(2)}`;
+    }
+
+    async function guardarPedido() {
+        const nombre = document.getElementById('clienteNombre').value.trim();
+        const mesa = document.getElementById('clienteMesa').value.trim();
+        
+        if (Object.keys(carrito).length === 0) {
+            alert('❌ Agrega al menos un producto');
+            return;
+        }
+        if (!nombre) {
+            alert('❌ Ingresa el nombre del cliente');
+            return;
+        }
+
+        const pedido = {
+            cliente: nombre,
+            mesa: mesa || '',
+            items: { ...carrito },
+            totalUSD: Object.entries(carrito).reduce((sum, [id, cant]) => {
+                const prod = productos.find(p => p.id === id);
+                return sum + (prod ? prod.precio * cant : 0);
+            }, 0),
+            tasaDolar: tasaDolar,
+            timestamp: new Date().toISOString(),
+            estado: 'pendiente',
+            referencia: null
+        };
+        pedido.totalBS = pedido.totalUSD * tasaDolar;
+
+        try {
+            if (db) {
+                await db.collection('pedidos').add(pedido);
+            }
+            carrito = {};
+            document.getElementById('clienteNombre').value = '';
+            document.getElementById('clienteMesa').value = '';
+            renderizarProductos();
+            actualizarResumen();
+            cargarPedidosHistorial();
+            mostrarToast('✅ Pedido guardado');
+        } catch (error) {
+            alert('❌ Error al guardar');
+        }
+    }        // ============ HISTORIAL Y EDICIÓN COMPLETA ============
+        async function cargarPedidosHistorial() {
+            if (!db) return;
+            try {
+                const snapshot = await db.collection('pedidos').orderBy('timestamp', 'desc').get();
+                todosLosPedidos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                mostrarHistorial();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarHistorial() {
+            const container = document.getElementById('app-historial');
+            if (todosLosPedidos.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px;">📭 No hay pedidos</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            todosLosPedidos.forEach(pedido => {
+                const fecha = new Date(pedido.timestamp);
+                const itemsText = Object.entries(pedido.items || {}).map(([id, cant]) => {
+                    const prod = productos.find(p => p.id === id);
+                    return `${prod?.nombre || id} x${cant}`;
+                }).join(', ');
+                
+                const div = document.createElement('div');
+                div.className = `pedido-card ${pedido.estado === 'completado' ? 'completado' : ''}`;
+                
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
+                        <strong>🧑 ${pedido.cliente}</strong>
+                        ${pedido.mesa ? `<span>Mesa: ${pedido.mesa}</span>` : ''}
+                        <span style="font-size:0.8em; color:#666;">${fecha.toLocaleString()}</span>
+                        <span style="background:${pedido.estado === 'pendiente' ? '#ffc107' : '#27ae60'}; padding:2px 8px; border-radius:15px; font-size:0.7em;">
+                            ${pedido.estado === 'pendiente' ? '⏳ Pendiente' : '✅ Completado'}
+                        </span>
+                    </div>
+                    <div style="font-size:0.85em; margin:10px 0;">📦 ${itemsText}</div>
+                    <div style="font-weight:bold; color:#e74c3c;">💰 $${pedido.totalUSD?.toFixed(2)}</div>
+                    ${pedido.referencia ? `<div style="background:#e8f5e9; padding:8px; border-radius:8px; margin-top:8px; font-size:0.8em;">💳 Ref: ${pedido.referencia.numero}<br>📝 ${pedido.referencia.detalle || ''}</div>` : ''}
+                    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <button onclick="abrirEditarPedidoCompleto('${pedido.id}')" style="background:#ffc107; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">✏️ Editar</button>
+                        ${pedido.estado === 'pendiente' ? `<button onclick="completarPedido('${pedido.id}')" style="background:#27ae60; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">✅ Completar</button>` : ''}
+                        <button onclick="eliminarPedidoHistorial('${pedido.id}')" style="background:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">🗑️ Eliminar</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // EDITAR PEDIDO COMPLETO - Puedes agregar CUALQUIER producto
+        function abrirEditarPedidoCompleto(pedidoId) {
+            const pedido = todosLosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+            
+            pedidoEditandoId = pedidoId;
+            carritoEditando = { ...pedido.items };
+            
+            document.getElementById('editClienteNombre').value = pedido.cliente;
+            document.getElementById('editMesa').value = pedido.mesa || '';
+            
+            const container = document.getElementById('editProductosLista');
+            container.innerHTML = '<h4 style="margin-bottom:10px;">📦 Todos los productos (agrega o quita lo que quieras):</h4>';
+            
+            // Mostrar TODOS los productos disponibles (incluye cerveza, papelón, jamaica, etc.)
+            productos.forEach(prod => {
+                const cantidad = carritoEditando[prod.id] || 0;
+                const prodDiv = document.createElement('div');
+                prodDiv.className = 'modal-producto';
+                prodDiv.innerHTML = `
+                    <div class="modal-producto-info">
+                        <div class="modal-producto-nombre">${prod.nombre}</div>
+                        <div class="modal-producto-precio">$${prod.precio.toFixed(2)}</div>
+                    </div>
+                    <div class="modal-cantidad-control">
+                        <button class="modal-cantidad-btn" onclick="editarCantidadProducto('${prod.id}', -1)">-</button>
+                        <span class="modal-cantidad" id="edit-cant-${prod.id}">${cantidad}</span>
+                        <button class="modal-cantidad-btn" onclick="editarCantidadProducto('${prod.id}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(prodDiv);
+            });
+            
+            document.getElementById('modalEditarPedido').style.display = 'flex';
+        }
+
+        function editarCantidadProducto(id, delta) {
+            const nuevoValor = (carritoEditando[id] || 0) + delta;
+            if (nuevoValor <= 0) {
+                delete carritoEditando[id];
+            } else {
+                carritoEditando[id] = nuevoValor;
+            }
+            const span = document.getElementById(`edit-cant-${id}`);
+            if (span) span.textContent = carritoEditando[id] || 0;
+        }
+
+        async function guardarEdicionPedido() {
+            const nuevoCliente = document.getElementById('editClienteNombre').value.trim();
+            const nuevaMesa = document.getElementById('editMesa').value.trim();
+            
+            if (!nuevoCliente) {
+                alert('Ingresa el nombre del cliente');
+                return;
+            }
+            
+            if (Object.keys(carritoEditando).length === 0) {
+                alert('Agrega al menos un producto');
+                return;
+            }
+            
+            const totalUSD = Object.entries(carritoEditando).reduce((sum, [id, cant]) => {
+                const prod = productos.find(p => p.id === id);
+                return sum + (prod ? prod.precio * cant : 0);
+            }, 0);
+            
+            try {
+                await db.collection('pedidos').doc(pedidoEditandoId).update({
+                    cliente: nuevoCliente,
+                    mesa: nuevaMesa,
+                    items: carritoEditando,
+                    totalUSD: totalUSD,
+                    totalBS: totalUSD * tasaDolar,
+                    editado: new Date().toISOString()
+                });
+                cerrarModalEditarPedido();
+                await cargarPedidosHistorial();
+                mostrarToast('✅ Pedido editado correctamente');
+            } catch (error) {
+                alert('❌ Error al editar');
+            }
+        }
+
+        function cerrarModalEditarPedido() {
+            document.getElementById('modalEditarPedido').style.display = 'none';
+            pedidoEditandoId = null;
+            carritoEditando = {};
+        }
+
+        async function completarPedido(pedidoId) {
+            const referencia = prompt('💰 Ingrese el número de referencia / comprobante de pago:');
+            if (!referencia) return;
+            
+            const detalle = prompt('📝 Detalle adicional (banco, fecha, etc.) - opcional:', '');
+            
+            try {
+                await db.collection('pedidos').doc(pedidoId).update({
+                    estado: 'completado',
+                    referencia: { numero: referencia, detalle: detalle || '', fecha: new Date().toISOString() }
+                });
+                await cargarPedidosHistorial();
+                mostrarToast('✅ Pedido completado');
+            } catch (error) {
+                alert('❌ Error al completar');
+            }
+        }
+
+        async function eliminarPedidoHistorial(id) {
+            if (confirm('¿Eliminar este pedido?')) {
+                try {
+                    await db.collection('pedidos').doc(id).delete();
+                    await cargarPedidosHistorial();
+                    mostrarToast('🗑️ Pedido eliminado');
+                } catch (error) {
+                    alert('Error al eliminar');
+                }
+            }
+        }
+
+        // ============ UTILIDADES ============
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'productos') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tab-productos').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tab-historial').classList.add('active');
+                cargarPedidosHistorial();
+            }
+        }
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // Funciones globales
+        window.modificarCantidad = modificarCantidad;
+        window.guardarPedido = guardarPedido;
+        window.guardarTasa = guardarTasa;
+        window.abrirModalTasa = abrirModalTasa;
+        window.cerrarModalTasa = cerrarModalTasa;
+        window.cambiarTab = cambiarTab;
+        window.abrirEditarPedidoCompleto = abrirEditarPedidoCompleto;
+        window.editarCantidadProducto = editarCantidadProducto;
+        window.guardarEdicionPedido = guardarEdicionPedido;
+        window.cerrarModalEditarPedido = cerrarModalEditarPedido;
+        window.completarPedido = completarPedido;
+        window.eliminarPedidoHistorial = eliminarPedidoHistorial;
+
+        // Inicializar
+        cargarTasaGuardada();
+        cargarProductos();
+        cargarPedidosHistorial();
+        document.getElementById('btnEnviar').addEventListener('click', guardarPedido);
+        document.getElementById('clienteNombre').addEventListener('input', (e) => clienteNombre = e.target.value);
+        document.getElementById('clienteMesa').addEventListener('input', (e) => clienteMesa = e.target.value);
+    </script>
+</body>
+</html>

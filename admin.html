@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Patio de Don Simón</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+        }
+
+        .btn-actualizar {
+            background: white;
+            color: #e74c3c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            background: #e0e0e0;
+            font-weight: 500;
+        }
+
+        .filtro-btn.active {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .pedidos-lista {
+            display: grid;
+            gap: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .pedido-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 5px solid #ffc107;
+            transition: all 0.3s;
+        }
+
+        .pedido-card.completado {
+            border-left-color: #27ae60;
+            opacity: 0.85;
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .pedido-cliente {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .pedido-mesa {
+            background: #e0e0e0;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+
+        .pedido-fecha {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .estado-pendiente {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .estado-completado {
+            background: #27ae60;
+            color: white;
+        }
+
+        .pedido-items {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .pedido-total {
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 8px 0;
+        }
+
+        .pedido-ref {
+            background: #e8f5e9;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            margin: 8px 0;
+            border-left: 3px solid #27ae60;
+        }
+
+        .pedido-acciones {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-editar {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-completar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-eliminar {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+        }
+
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-guardar {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-cancelar {
+            background: #999;
+            color: white;
+        }
+
+        .form-producto {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-producto input, .form-producto select {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .btn-agregar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .lista-productos {
+            display: grid;
+            gap: 10px;
+        }
+
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .pedido-header {
+                flex-direction: column;
+            }
+            .producto-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍🍳 Panel Admin - Patio de Don Simón</h1>
+            <button class="btn-actualizar" onclick="cargarPedidos()">🔄 Actualizar</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="mostrarPanel('pedidos')">📦 Pedidos</button>
+            <button class="tab" onclick="mostrarPanel('productos')">🍽️ Productos</button>
+        </div>
+
+        <div id="panel-pedidos" class="panel active">
+            <div class="filtros">
+                <button class="filtro-btn active" data-filtro="todos" onclick="filtrarPedidos('todos')">📋 Todos</button>
+                <button class="filtro-btn" data-filtro="pendiente" onclick="filtrarPedidos('pendiente')">⏳ Pendientes</button>
+                <button class="filtro-btn" data-filtro="completado" onclick="filtrarPedidos('completado')">✅ Completados</button>
+            </div>
+            <div id="pedidosContainer" class="pedidos-lista">
+                <div class="empty-message">⏳ Cargando pedidos...</div>
+            </div>
+        </div>
+
+        <div id="panel-productos" class="panel">
+            <div class="form-producto">
+                <h3>➕ Agregar Producto</h3>
+                <input type="text" id="prodNombre" placeholder="Nombre">
+                <input type="number" id="prodPrecio" step="0.1" placeholder="Precio USD">
+                <select id="prodCategoria">
+                    <option value="Sopas">Sopas</option>
+                    <option value="1/2 Sopas">1/2 Sopas</option>
+                    <option value="Cachapas">Cachapas</option>
+                    <option value="Pescado">Pescado</option>
+                    <option value="Bebidas">Bebidas</option>
+                </select>
+                <button class="btn-agregar" onclick="agregarProducto()">➕ Agregar</button>
+            </div>
+            <div id="productosContainer" class="lista-productos">
+                <div class="empty-message">Cargando productos...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalReferencia" class="modal">
+        <div class="modal-content">
+            <h3>💰 Completar Pedido</h3>
+            <p>Cliente: <strong id="refCliente"></strong></p>
+            <p>Total: $<span id="refTotal"></span></p>
+            <input type="text" id="refNumero" placeholder="Número de referencia / comprobante">
+            <textarea id="refDetalle" placeholder="Detalle adicional (banco, fecha, etc.)"></textarea>
+            <button class="btn-guardar" onclick="guardarReferencia()">✅ Completar</button>
+            <button class="btn-cancelar" onclick="cerrarModalReferencia()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Editar Pedido</h3>
+            <input type="text" id="editCliente" placeholder="Nombre del cliente">
+            <div id="editProductos"></div>
+            <button class="btn-guardar" onclick="guardarEdicion()">💾 Guardar</button>
+            <button class="btn-cancelar" onclick="cerrarModalEditar()">Cancelar</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ Operación exitosa</div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>    <script>
+        // ============ FIREBASE ============
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCT_B6OyMl1K946adqW8VQunkfG6NA35s",
+            authDomain: "patio-don-simon.firebaseapp.com",
+            projectId: "patio-don-simon",
+            storageBucket: "patio-don-simon.firebasestorage.app",
+            messagingSenderId: "577457818649",
+            appId: "1:577457818649:web:6b476e57e72774c00dee88",
+            measurementId: "G-W64HY6D9D8"
+        };
+
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase conectado');
+        } catch (error) {
+            console.error('❌ Error:', error);
+            document.getElementById('pedidosContainer').innerHTML = '<div class="empty-message">❌ Error de conexión con Firebase</div>';
+        }
+
+        // ============ VARIABLES ============
+        let todosLosPedidos = [];
+        let productos = [];
+        let filtroActual = 'todos';
+        let pedidoSeleccionadoId = null;
+
+        // ============ PEDIDOS ============
+        async function cargarPedidos() {
+            if (!db) return;
+            try {
+                console.log('Cargando pedidos...');
+                const snapshot = await db.collection('pedidos').orderBy('timestamp', 'desc').get();
+                todosLosPedidos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log('Pedidos cargados:', todosLosPedidos.length);
+                mostrarPedidos();
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('pedidosContainer').innerHTML = '<div class="empty-message">❌ Error al cargar pedidos</div>';
+            }
+        }
+
+        function mostrarPedidos() {
+            const container = document.getElementById('pedidosContainer');
+            let filtrados = todosLosPedidos.filter(p => filtroActual === 'todos' || p.estado === filtroActual);
+            
+            if (filtrados.length === 0) {
+                container.innerHTML = '<div class="empty-message">📭 No hay pedidos</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            filtrados.forEach(pedido => {
+                const fecha = pedido.timestamp ? new Date(pedido.timestamp) : new Date();
+                const itemsHtml = Object.entries(pedido.items || {}).map(([id, cant]) => {
+                    const prod = productos.find(p => p.id === id);
+                    return `<div>• ${prod?.nombre || id} x${cant}</div>`;
+                }).join('');
+                
+                const div = document.createElement('div');
+                div.className = `pedido-card ${pedido.estado}`;
+                div.innerHTML = `
+                    <div class="pedido-header">
+                        <span class="pedido-cliente">🧑 ${pedido.cliente || 'Anónimo'}</span>
+                        ${pedido.mesa ? `<span class="pedido-mesa">Mesa: ${pedido.mesa}</span>` : ''}
+                        <span class="pedido-fecha">📅 ${fecha.toLocaleString()}</span>
+                        <span class="estado-badge ${pedido.estado === 'pendiente' ? 'estado-pendiente' : 'estado-completado'}">
+                            ${pedido.estado === 'pendiente' ? '⏳ Pendiente' : '✅ Completado'}
+                        </span>
+                    </div>
+                    <div class="pedido-items">${itemsHtml || '<div>Sin productos</div>'}</div>
+                    <div class="pedido-total">💰 Total: $${pedido.totalUSD?.toFixed(2)} (Bs ${pedido.totalBS?.toFixed(2)})</div>
+                    ${pedido.referencia ? `
+                        <div class="pedido-ref">
+                            💳 Referencia: ${pedido.referencia.numero}<br>
+                            📝 ${pedido.referencia.detalle || ''}
+                        </div>
+                    ` : ''}
+                    <div class="pedido-acciones">
+                        <button class="btn-editar" onclick="abrirEditarPedido('${pedido.id}')">✏️ Editar</button>
+                        ${pedido.estado === 'pendiente' ? `<button class="btn-completar" onclick="abrirModalReferencia('${pedido.id}')">✅ Completar</button>` : ''}
+                        <button class="btn-eliminar" onclick="eliminarPedido('${pedido.id}')">🗑️ Eliminar</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filtrarPedidos(filtro) {
+            filtroActual = filtro;
+            document.querySelectorAll('.filtro-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.filtro-btn[data-filtro="${filtro}"]`).classList.add('active');
+            mostrarPedidos();
+        }
+
+        // ============ REFERENCIA ============
+        function abrirModalReferencia(pedidoId) {
+            const pedido = todosLosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+            pedidoSeleccionadoId = pedidoId;
+            document.getElementById('refCliente').innerText = pedido.cliente;
+            document.getElementById('refTotal').innerText = pedido.totalUSD?.toFixed(2);
+            document.getElementById('refNumero').value = '';
+            document.getElementById('refDetalle').value = '';
+            document.getElementById('modalReferencia').style.display = 'flex';
+        }
+
+        async function guardarReferencia() {
+            const numero = document.getElementById('refNumero').value.trim();
+            const detalle = document.getElementById('refDetalle').value.trim();
+            if (!numero) {
+                alert('❌ Ingresa el número de referencia');
+                return;
+            }
+            try {
+                await db.collection('pedidos').doc(pedidoSeleccionadoId).update({
+                    estado: 'completado',
+                    referencia: { numero: numero, detalle: detalle, fecha: new Date().toISOString() }
+                });
+                cerrarModalReferencia();
+                await cargarPedidos();
+                mostrarToast('✅ Pedido completado');
+            } catch (error) {
+                alert('❌ Error al completar');
+            }
+        }
+
+        function cerrarModalReferencia() {
+            document.getElementById('modalReferencia').style.display = 'none';
+            pedidoSeleccionadoId = null;
+        }
+
+        // ============ EDITAR PEDIDO ============
+        async function abrirEditarPedido(pedidoId) {
+            const pedido = todosLosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+            pedidoSeleccionadoId = pedidoId;
+            document.getElementById('editCliente').value = pedido.cliente;
+            
+            const container = document.getElementById('editProductos');
+            container.innerHTML = '<h4>Productos:</h4>';
+            for (let [itemId, cantidad] of Object.entries(pedido.items || {})) {
+                const prod = productos.find(p => p.id === itemId);
+                if (prod) {
+                    container.innerHTML += `
+                        <div style="margin: 8px 0;">
+                            <span>${prod.nombre}</span>
+                            <input type="number" id="edit-${itemId}" value="${cantidad}" min="0" step="1" style="width: 80px; margin-left: 10px; padding: 5px;">
+                        </div>
+                    `;
+                }
+            }
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        async function guardarEdicion() {
+            const nuevoCliente = document.getElementById('editCliente').value.trim();
+            if (!nuevoCliente) {
+                alert('Ingresa el nombre del cliente');
+                return;
+            }
+            
+            const pedidoOriginal = todosLosPedidos.find(p => p.id === pedidoSeleccionadoId);
+            const nuevosItems = {};
+            
+            for (let [itemId] of Object.entries(pedidoOriginal?.items || {})) {
+                const input = document.getElementById(`edit-${itemId}`);
+                if (input && parseInt(input.value) > 0) {
+                    nuevosItems[itemId] = parseInt(input.value);
+                }
+            }
+            
+            if (Object.keys(nuevosItems).length === 0) {
+                alert('Agrega al menos un producto');
+                return;
+            }
+            
+            const totalUSD = Object.entries(nuevosItems).reduce((sum, [id, cant]) => {
+                const prod = productos.find(p => p.id === id);
+                return sum + (prod ? prod.precio * cant : 0);
+            }, 0);
+            
+            try {
+                await db.collection('pedidos').doc(pedidoSeleccionadoId).update({
+                    cliente: nuevoCliente,
+                    items: nuevosItems,
+                    totalUSD: totalUSD,
+                    totalBS: totalUSD * (pedidoOriginal?.tasaDolar || 40),
+                    editado: new Date().toISOString()
+                });
+                cerrarModalEditar();
+                await cargarPedidos();
+                mostrarToast('✅ Pedido editado');
+            } catch (error) {
+                alert('❌ Error al editar');
+            }
+        }
+
+        function cerrarModalEditar() {
+            document.getElementById('modalEditar').style.display = 'none';
+            pedidoSeleccionadoId = null;
+        }
+
+        // ============ ELIMINAR PEDIDO ============
+        async function eliminarPedido(id) {
+            if (confirm('¿Eliminar este pedido permanentemente?')) {
+                try {
+                    await db.collection('pedidos').doc(id).delete();
+                    await cargarPedidos();
+                    mostrarToast('🗑️ Pedido eliminado');
+                } catch (error) {
+                    alert('Error al eliminar');
+                }
+            }
+        }
+
+        // ============ PRODUCTOS ============
+        const productosDefault = [
+            { id: 'sopa_res', nombre: 'Sopa de Res', precio: 5.00, categoria: 'Sopas' },
+            { id: 'sopa_mondongo', nombre: 'Mondongo', precio: 5.00, categoria: 'Sopas' },
+            { id: 'sopa_picadillo', nombre: 'Picadillo', precio: 5.50, categoria: 'Sopas' },
+            { id: 'sopa_gallina', nombre: 'Gallina', precio: 5.00, categoria: 'Sopas' },
+            { id: 'sopa_res_media', nombre: '1/2 Res', precio: 3.00, categoria: '1/2 Sopas' },
+            { id: 'sopa_mondongo_media', nombre: '1/2 Mondongo', precio: 3.00, categoria: '1/2 Sopas' },
+            { id: 'sopa_picadillo_media', nombre: '1/2 Picadillo', precio: 2.00, categoria: '1/2 Sopas' },
+            { id: 'sopa_gallina_media', nombre: '1/2 Gallina', precio: 3.00, categoria: '1/2 Sopas' },
+            { id: 'cachapa_llanero', nombre: 'Cachapa con Queso Llanero', precio: 3.50, categoria: 'Cachapas' },
+            { id: 'cachapa_mano', nombre: 'Cachapa con Queso de Mano', precio: 5.50, categoria: 'Cachapas' },
+            { id: 'cachapa_mano_cochino', nombre: 'Cachapa con Queso de Mano y Cochino', precio: 8.00, categoria: 'Cachapas' },
+            { id: 'pescado', nombre: 'Pescado', precio: 6.00, categoria: 'Pescado' },
+            { id: 'cerveza', nombre: 'Cerveza', precio: 0.90, categoria: 'Bebidas' },
+            { id: 'jamaica', nombre: 'Agua de Jamaica', precio: 1.50, categoria: 'Bebidas' }
+        ];
+
+        async function cargarProductosAdmin() {
+            if (!db) return;
+            try {
+                const snapshot = await db.collection('productos').get();
+                if (snapshot.empty) {
+                    productos = [...productosDefault];
+                    for (let p of productos) {
+                        await db.collection('productos').doc(p.id).set(p);
+                    }
+                } else {
+                    productos = snapshot.docs.map(doc => doc.data());
+                }
+                mostrarProductosAdmin();
+            } catch (error) {
+                productos = [...productosDefault];
+                mostrarProductosAdmin();
+            }
+        }
+
+        function mostrarProductosAdmin() {
+            const container = document.getElementById('productosContainer');
+            if (productos.length === 0) {
+                container.innerHTML = '<div class="empty-message">No hay productos</div>';
+                return;
+            }
+            container.innerHTML = '';
+            productos.forEach(prod => {
+                const div = document.createElement('div');
+                div.className = 'producto-item';
+                div.innerHTML = `
+                    <span><strong>${prod.nombre}</strong> - $${prod.precio} - ${prod.categoria}</span>
+                    <div>
+                        <button class="btn-editar" onclick="editarProducto('${prod.id}', ${prod.precio})">✏️ Editar</button>
+                        <button class="btn-eliminar" onclick="eliminarProducto('${prod.id}')">🗑️ Eliminar</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function agregarProducto() {
+            const nombre = document.getElementById('prodNombre').value.trim();
+            const precio = parseFloat(document.getElementById('prodPrecio').value);
+            const categoria = document.getElementById('prodCategoria').value;
+            if (!nombre || isNaN(precio)) {
+                alert('Completa todos los campos');
+                return;
+            }
+            const id = nombre.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+            try {
+                await db.collection('productos').doc(id).set({
+                    id: id, nombre: nombre, precio: precio, categoria: categoria
+                });
+                document.getElementById('prodNombre').value = '';
+                document.getElementById('prodPrecio').value = '';
+                await cargarProductosAdmin();
+                await cargarPedidos();
+                mostrarToast('✅ Producto agregado');
+            } catch (error) {
+                alert('Error al agregar');
+            }
+        }
+
+        async function editarProducto(id, precioActual) {
+            const nuevoPrecio = prompt('Nuevo precio en USD:', precioActual);
+            if (nuevoPrecio && !isNaN(parseFloat(nuevoPrecio))) {
+                try {
+                    await db.collection('productos').doc(id).update({ precio: parseFloat(nuevoPrecio) });
+                    await cargarProductosAdmin();
+                    await cargarPedidos();
+                    mostrarToast('✅ Precio actualizado');
+                } catch (error) {
+                    alert('Error al actualizar');
+                }
+            }
+        }
+
+        async function eliminarProducto(id) {
+            if (confirm('¿Eliminar este producto?')) {
+                try {
+                    await db.collection('productos').doc(id).delete();
+                    await cargarProductosAdmin();
+                    await cargarPedidos();
+                    mostrarToast('✅ Producto eliminado');
+                } catch (error) {
+                    alert('Error al eliminar');
+                }
+            }
+        }
+
+        // ============ UTILIDADES ============
+        function mostrarPanel(panel) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`panel-${panel}`).classList.add('active');
+            if (panel === 'pedidos') cargarPedidos();
+            if (panel === 'productos') cargarProductosAdmin();
+        }
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // ============ FUNCIONES GLOBALES ============
+        window.mostrarPanel = mostrarPanel;
+        window.cargarPedidos = cargarPedidos;
+        window.filtrarPedidos = filtrarPedidos;
+        window.abrirModalReferencia = abrirModalReferencia;
+        window.guardarReferencia = guardarReferencia;
+        window.cerrarModalReferencia = cerrarModalReferencia;
+        window.abrirEditarPedido = abrirEditarPedido;
+        window.guardarEdicion = guardarEdicion;
+        window.cerrarModalEditar = cerrarModalEditar;
+        window.eliminarPedido = eliminarPedido;
+        window.agregarProducto = agregarProducto;
+        window.editarProducto = editarProducto;
+        window.eliminarProducto = eliminarProducto;
+
+        // ============ INICIAR ============
+        cargarProductosAdmin();
+        cargarPedidos();
+    </script>
+</body>
+</html>
