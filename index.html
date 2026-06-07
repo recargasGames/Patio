@@ -211,7 +211,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
         }
 
         .resumen-header h3 {
@@ -220,22 +221,30 @@
         }
 
         .total-pedido {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #e74c3c;
         }
 
+        .total-bs {
+            font-size: 0.9em;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
         .resumen-items {
-            max-height: 150px;
+            max-height: 130px;
             overflow-y: auto;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-size: 0.85em;
         }
 
         .resumen-item {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
+            padding: 5px 0;
             border-bottom: 1px solid #f0f0f0;
         }
 
@@ -351,7 +360,7 @@
         }
 
         .spacer {
-            height: 200px;
+            height: 210px;
         }
 
         .toast {
@@ -379,6 +388,17 @@
 
         .pedido-card.completado {
             border-left-color: #27ae60;
+        }
+
+        @media (max-width: 480px) {
+            .total-bs {
+                font-size: 0.8em;
+            }
+            .resumen-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
         }
     </style>
 </head>
@@ -420,6 +440,7 @@
             <h3>📋 Pedido</h3>
             <span class="total-pedido" id="totalPedido">$0.00</span>
         </div>
+        <div class="total-bs" id="totalBs">Bs 0,00</div>
         <div class="resumen-items" id="resumenItems">
             <div style="color: #999; text-align: center;">No hay productos</div>
         </div>
@@ -635,14 +656,14 @@
 
     function actualizarResumen() {
         const resumenItems = document.getElementById('resumenItems');
-        let total = 0;
+        let totalUSD = 0;
         resumenItems.innerHTML = '';
         
         for (let [id, cantidad] of Object.entries(carrito)) {
             const producto = productos.find(p => p.id === id);
             if (producto && cantidad > 0) {
                 const subtotal = producto.precio * cantidad;
-                total += subtotal;
+                totalUSD += subtotal;
                 resumenItems.innerHTML += `
                     <div class="resumen-item">
                         <span>${producto.nombre} x${cantidad}</span>
@@ -656,7 +677,9 @@
             resumenItems.innerHTML = '<div style="color: #999; text-align: center;">No hay productos</div>';
         }
         
-        document.getElementById('totalPedido').innerHTML = `$${total.toFixed(2)}`;
+        const totalBS = totalUSD * tasaDolar;
+        document.getElementById('totalPedido').innerHTML = `$${totalUSD.toFixed(2)}`;
+        document.getElementById('totalBs').innerHTML = `Bs ${totalBS.toFixed(2)}`;
     }
 
     async function guardarPedido() {
@@ -672,20 +695,22 @@
             return;
         }
 
+        const totalUSD = Object.entries(carrito).reduce((sum, [id, cant]) => {
+            const prod = productos.find(p => p.id === id);
+            return sum + (prod ? prod.precio * cant : 0);
+        }, 0);
+
         const pedido = {
             cliente: nombre,
             mesa: mesa || '',
             items: { ...carrito },
-            totalUSD: Object.entries(carrito).reduce((sum, [id, cant]) => {
-                const prod = productos.find(p => p.id === id);
-                return sum + (prod ? prod.precio * cant : 0);
-            }, 0),
+            totalUSD: totalUSD,
+            totalBS: totalUSD * tasaDolar,
             tasaDolar: tasaDolar,
             timestamp: new Date().toISOString(),
             estado: 'pendiente',
             referencia: null
         };
-        pedido.totalBS = pedido.totalUSD * tasaDolar;
 
         try {
             if (db) {
@@ -701,7 +726,7 @@
         } catch (error) {
             alert('❌ Error al guardar');
         }
-    }        // ============ HISTORIAL Y EDICIÓN COMPLETA ============
+    }        // ============ HISTORIAL Y EDICIÓN ============
         async function cargarPedidosHistorial() {
             if (!db) return;
             try {
@@ -742,6 +767,7 @@
                     </div>
                     <div style="font-size:0.85em; margin:10px 0;">📦 ${itemsText}</div>
                     <div style="font-weight:bold; color:#e74c3c;">💰 $${pedido.totalUSD?.toFixed(2)}</div>
+                    <div style="font-weight:bold; color:#27ae60;">Bs ${pedido.totalBS?.toFixed(2)}</div>
                     ${pedido.referencia ? `<div style="background:#e8f5e9; padding:8px; border-radius:8px; margin-top:8px; font-size:0.8em;">💳 Ref: ${pedido.referencia.numero}<br>📝 ${pedido.referencia.detalle || ''}</div>` : ''}
                     <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
                         <button onclick="abrirEditarPedidoCompleto('${pedido.id}')" style="background:#ffc107; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">✏️ Editar</button>
@@ -753,7 +779,6 @@
             });
         }
 
-        // EDITAR PEDIDO COMPLETO - Puedes agregar CUALQUIER producto
         function abrirEditarPedidoCompleto(pedidoId) {
             const pedido = todosLosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
@@ -767,7 +792,6 @@
             const container = document.getElementById('editProductosLista');
             container.innerHTML = '<h4 style="margin-bottom:10px;">📦 Todos los productos (agrega o quita lo que quieras):</h4>';
             
-            // Mostrar TODOS los productos disponibles (incluye cerveza, papelón, jamaica, etc.)
             productos.forEach(prod => {
                 const cantidad = carritoEditando[prod.id] || 0;
                 const prodDiv = document.createElement('div');
