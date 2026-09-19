@@ -1,0 +1,56 @@
+{
+  "name": "Patio de Don Simón",
+  "short_name": "Don Simón",
+  "description": "Sistema POS de Patio de Don Simón - Toma de pedidos para restaurante",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f2",
+  "theme_color": "#c0392b",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["food", "business", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuevo pedido",
+      "short_name": "Pedido",
+      "description": "Tomar un nuevo pedido",
+      "url": "./index.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Historial",
+      "short_name": "Historial",
+      "description": "Ver historial de pedidos",
+      "url": "./index.html#historial",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
